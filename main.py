@@ -1,21 +1,19 @@
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import StreamingResponse
 from rembg import remove
 from PIL import Image
 import io
-import uuid
-import os
 
 app = FastAPI()
 
 @app.post("/remove-bg/")
-async def remove_background(file: UploadFile = File(...)):
-    contents = await file.read()
-    input_image = Image.open(io.BytesIO(contents))
-    output_image = remove(input_image)
+async def remove_bg(file: UploadFile = File(...)):
+    # Lire les données brutes de l'image
+    image_bytes = await file.read()
+    input_image = Image.open(io.BytesIO(image_bytes))
 
-    output_filename = f"{uuid.uuid4()}.png"
-    output_path = f"/tmp/{output_filename}"
-    output_image.save(output_path)
+    # Supprimer l’arrière-plan
+    output_bytes = remove(image_bytes)
 
-    return FileResponse(output_path, media_type="image/png", filename="sans_fond.png")
+    # Retourner l’image traitée directement
+    return StreamingResponse(io.BytesIO(output_bytes), media_type="image/png")
