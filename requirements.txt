@@ -4,4 +4,3 @@ rembg
 pillow
 python-multipart
 onnxruntime
-rembg[cli]
