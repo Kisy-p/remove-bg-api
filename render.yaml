@@ -2,5 +2,10 @@ services:
   - type: web
     name: remove-bg-api
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      python setup_model.py  # ← force le téléchargement du modèle
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PORT
+        value: 10000
