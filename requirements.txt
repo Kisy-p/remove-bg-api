@@ -3,4 +3,4 @@ uvicorn>=0.21.1
 onnxruntime>=1.16.0
 pillow>=9.5.0
 python-multipart
-rembg[u2netp]
+rembg[u2netp]>=2.0.30
