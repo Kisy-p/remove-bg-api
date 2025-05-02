@@ -1,6 +1,5 @@
-fastapi
-uvicorn
-rembg
-pillow
-python-multipart
-onnxruntime  # requis pour rembg
+fastapi>=0.95.0
+uvicorn>=0.21.1
+rembg>=2.0.30
+onnxruntime>=1.16.0
+pillow>=9.5.0
