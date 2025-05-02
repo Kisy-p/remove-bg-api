@@ -3,4 +3,3 @@ uvicorn
 rembg[cli]
 pillow
 python-multipart
-onnxruntime
