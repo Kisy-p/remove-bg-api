@@ -1,6 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
-from rembg import remove, new_session
 import io
 
 app = FastAPI()
@@ -16,13 +15,8 @@ async def remove_bg(file: UploadFile = File(...)):
 
         print(f"[INFO] Taille du fichier reçu : {len(image_bytes)} octets")
 
-        # Session avec un modèle plus léger
-        session = new_session("u2netp")
-        output_bytes = remove(image_bytes, session=session)
-
-        print(f"[INFO] Traitement terminé, taille sortie : {len(output_bytes)} octets")
-
-        return StreamingResponse(io.BytesIO(output_bytes), media_type="image/png")
+        # ⚠️ Pour test uniquement : retourne le fichier tel quel
+        return StreamingResponse(io.BytesIO(image_bytes), media_type="image/png")
 
     except Exception as e:
         print(f"[EXCEPTION] {str(e)}")
