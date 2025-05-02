@@ -1,5 +1,6 @@
 fastapi
 uvicorn
-rembg[cli]
+rembg
 pillow
 python-multipart
+onnxruntime  # requis pour rembg
