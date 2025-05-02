@@ -22,7 +22,7 @@ async def remove_bg(file: UploadFile = File(...)):
         if not image_bytes:
             raise HTTPException(status_code=400, detail="Empty file received")
 
-        output = remove(image_bytes, session=session)
+        output = remove(image_bytes, model_name="u2netp")
 
         print("==> remove() completed")
 
