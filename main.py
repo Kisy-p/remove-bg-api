@@ -7,6 +7,10 @@ import os
 
 app = FastAPI()
 
+@app.get("/")
+async def ping():
+    return {"status": "ok"}
+
 @app.post("/remove-bg/")
 async def remove_bg(file: UploadFile = File(...)):
     try:
@@ -21,15 +25,24 @@ async def remove_bg(file: UploadFile = File(...)):
 
         output_path = input_path.replace(".png", "_out.png")
 
+        print(f"[DEBUG] Input path: {input_path}")
+        print(f"[DEBUG] Output path: {output_path}")
+
         result = subprocess.run(
-            ["rembg", "i", input_path, output_path],
-            capture_output=True,
+            ["rembg", "-v", "i", input_path, output_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True
         )
 
+        print(f"[rembg STDOUT] {result.stdout}")
+        print(f"[rembg STDERR] {result.stderr}")
+
         if result.returncode != 0:
-            print("rembg error:", result.stderr)
             raise HTTPException(status_code=500, detail="Échec du traitement de l'image")
+
+        if not os.path.exists(output_path):
+            raise HTTPException(status_code=500, detail="Fichier de sortie non trouvé")
 
         with open(output_path, "rb") as out_file:
             processed_image = out_file.read()
@@ -40,5 +53,5 @@ async def remove_bg(file: UploadFile = File(...)):
         return StreamingResponse(io.BytesIO(processed_image), media_type="image/png")
 
     except Exception as e:
-        print(f"ERREUR: {e}")
+        print(f"[EXCEPTION] {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur serveur")
