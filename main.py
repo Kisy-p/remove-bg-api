@@ -1,8 +1,12 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
-from rembg import remove, new_session
+from rembg import remove
 import io
-import traceback
+import os
+
+# Définir le modèle léger
+os.environ["U2NET_HOME"] = "/opt/render/.u2net"  # optionnel
+os.environ["REMBG_SESSION"] = "u2netp"
 
 app = FastAPI()
 
@@ -11,21 +15,11 @@ async def remove_bg(file: UploadFile = File(...)):
     try:
         print("[INFO] Début du traitement")
         image_bytes = await file.read()
+        print(f"[INFO] Taille : {len(image_bytes)}")
 
-        if not image_bytes:
-            raise HTTPException(status_code=400, detail="Fichier vide")
-
-        print(f"[INFO] Taille du fichier reçu : {len(image_bytes)} octets")
-
-        # Charge explicitement une session avec le modèle U2NET (le plus précis)
-        session = new_session("u2net")
-        output_bytes = remove(image_bytes, session=session)
-
-        print(f"[INFO] Taille de l'image retournée : {len(output_bytes)} octets")
-
+        output_bytes = remove(image_bytes, session="u2netp")
         return StreamingResponse(io.BytesIO(output_bytes), media_type="image/png")
 
     except Exception as e:
-        print(f"[EXCEPTION] {str(e)}")
-        traceback.print_exc()
+        print(f"[ERREUR] {e}")
         raise HTTPException(status_code=500, detail="Erreur serveur")
