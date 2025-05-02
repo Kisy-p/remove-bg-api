@@ -1,26 +1,29 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from rembg import remove
 from fastapi.responses import StreamingResponse
-from rembg import remove, new_session
 import io
 
 app = FastAPI()
 
-try:
-    session = new_session("u2netp")  # modèle léger, important pour Render
-except Exception as e:
-    print(f"[ERREUR CRITIQUE] Échec du chargement du modèle : {e}")
-    raise HTTPException(status_code=500, detail="Erreur serveur au démarrage")
+@app.post("/remove-background")
+async def remove_background(file: UploadFile = File(...)):
+    # Vérification du type de fichier
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="Le fichier doit être une image")
+    
+    # Lecture du fichier
+    input_image = await file.read()
+    
+    # Suppression du fond
+    output_image = remove(input_image)
+    
+    # Création d'un flux mémoire
+    result = io.BytesIO(output_image)
+    
+    # Retour de l'image traitée
+    return StreamingResponse(result, media_type="image/png")
 
-@app.post("/remove-bg/")
-async def remove_bg(file: UploadFile = File(...)):
-    try:
-        image_bytes = await file.read()
-        if not image_bytes:
-            raise HTTPException(status_code=400, detail="Fichier vide")
-
-        output = remove(image_bytes, session=session)
-        return StreamingResponse(io.BytesIO(output), media_type="image/png")
-
-    except Exception as e:
-        print(f"[ERREUR TRAITEMENT] {e}")
-        raise HTTPException(status_code=500, detail="Erreur serveur")
+# Point d'entrée pour Render
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=10000)
