@@ -1,29 +1,27 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from rembg import remove
 from fastapi.responses import StreamingResponse
+from rembg import remove
 import io
+import os
 
 app = FastAPI()
 
+# Préchargement du modèle
+@app.on_event("startup")
+async def load_model():
+    test_input = io.BytesIO(b"fake_image_data").getvalue()
+    await remove(test_input)
+
 @app.post("/remove-background")
 async def remove_background(file: UploadFile = File(...)):
-    # Vérification du type de fichier
     if not file.content_type.startswith('image/'):
-        raise HTTPException(status_code=400, detail="Le fichier doit être une image")
+        raise HTTPException(400, "Fichier non supporté")
     
-    # Lecture du fichier
-    input_image = await file.read()
+    input_data = await file.read()
+    output_data = await remove(input_data)
     
-    # Suppression du fond
-    output_image = remove(input_image)
-    
-    # Création d'un flux mémoire
-    result = io.BytesIO(output_image)
-    
-    # Retour de l'image traitée
-    return StreamingResponse(result, media_type="image/png")
+    return StreamingResponse(io.BytesIO(output_data), media_type="image/png")
 
-# Point d'entrée pour Render
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=10000)
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
