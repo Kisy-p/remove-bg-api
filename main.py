@@ -1,14 +1,12 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
-from rembg import remove
+from rembg import remove, new_session
 import io
-import os
-
-# Définir le modèle léger
-os.environ["U2NET_HOME"] = "/opt/render/.u2net"  # optionnel
-os.environ["REMBG_SESSION"] = "u2netp"
 
 app = FastAPI()
+
+# Charger le modèle léger une seule fois
+session = new_session("u2netp")
 
 @app.post("/remove-bg/")
 async def remove_bg(file: UploadFile = File(...)):
@@ -17,7 +15,10 @@ async def remove_bg(file: UploadFile = File(...)):
         image_bytes = await file.read()
         print(f"[INFO] Taille : {len(image_bytes)}")
 
-        output_bytes = remove(image_bytes, session="u2netp")
+        # Appliquer la suppression de fond
+        output_bytes = remove(image_bytes, session=session)
+        print("[INFO] Traitement réussi")
+
         return StreamingResponse(io.BytesIO(output_bytes), media_type="image/png")
 
     except Exception as e:
