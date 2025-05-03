@@ -48,7 +48,7 @@ async def remove_background(file: UploadFile = File(...)):
         # Vérification de l'image
         try:
             input_image = Image.open(io.BytesIO(image_data)).convert("RGBA")
-            logger.info(f"Image ouverte : {input_image.format}, {input_image.size}")
+            logger.info(f"Image convertie: {input_image.mode}, {input_image.size}")
         except Exception as e:
             logger.error(f"Erreur d'ouverture de l'image : {e}")
             raise HTTPException(status_code=400, detail="Image invalide")
