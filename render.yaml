@@ -2,6 +2,10 @@ services:
   - type: web
     name: remove-bg-api
     env: python
+    region: frankfurt  # ou frankfurt selon ta localisation
+    plan: starter  # ou "free" si tu es sur le plan gratuit
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    healthCheckPath: /docs
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
