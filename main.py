@@ -22,14 +22,6 @@ async def remove_bg(file: UploadFile = File(...)):
         if not image_bytes:
             raise HTTPException(status_code=400, detail="Fichier vide")
 
-        # Enregistrer temporairement l'image reçue (debug)
-        file_path = f"/tmp/{file.filename}"
-        with open(file_path, "wb") as buffer:
-            buffer.write(image_bytes)
-
-        print(f"[INFO] Image enregistrée temporairement : {file_path}")
-        print(f"[INFO] Taille : {len(image_bytes)} octets")
-
         # Suppression de l’arrière-plan
         output_bytes = remove(image_bytes, session=session)
 
