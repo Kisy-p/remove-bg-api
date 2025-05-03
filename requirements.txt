@@ -1,6 +1,6 @@
-fastapi
-uvicorn
-rembg[cli]
-pillow
-python-multipart
-onnxruntime
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+rembg==2.0.50
+pillow==10.3.0
+python-multipart==0.0.9
+onnxruntime==1.17.1
