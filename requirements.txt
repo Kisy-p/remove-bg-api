@@ -1,6 +1,6 @@
-fastapi
-uvicorn
-rembg
-pillow
-python-multipart
-onnxruntime
+fastapi==0.104.1
+uvicorn==0.23.2
+python-multipart==0.0.6
+pillow==10.0.1
+rembg==2.0.50
+onnxruntime==1.15.1
