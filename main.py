@@ -1,48 +1,35 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import StreamingResponse
-from rembg import remove, new_session
-from PIL import Image
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import Response
 import io
-import os
-import time
+import uvicorn
+from rembg import remove
+from PIL import Image
 
-app = FastAPI()
+app = FastAPI(title="API de suppression de fond d'image")
 
-# Crée un dossier temporaire s'il n'existe pas
-os.makedirs("/tmp/images", exist_ok=True)
+@app.post("/remove-background/")
+async def remove_background(file: UploadFile = File(...)):
+    # Lire l'image téléchargée
+    image_data = await file.read()
+    input_image = Image.open(io.BytesIO(image_data))
+    
+    # Supprimer le fond de l'image
+    output_image = remove(input_image)
+    
+    # Convertir l'image en bytes pour la réponse
+    img_byte_arr = io.BytesIO()
+    output_image.save(img_byte_arr, format=input_image.format if input_image.format else "PNG")
+    img_byte_arr.seek(0)
+    
+    # Renvoyer l'image traitée
+    return Response(
+        content=img_byte_arr.getvalue(), 
+        media_type=f"image/{input_image.format.lower() if input_image.format else 'png'}"
+    )
 
-# Précharger le modèle une fois au lancement
-try:
-    print("[INFO] Chargement du modèle u2netp...")
-    session = new_session("u2netp")
-    print("[INFO] Modèle chargé avec succès.")
-except Exception as e:
-    print(f"[ERREUR CRITIQUE] Échec du chargement du modèle : {e}")
-    raise
+@app.get("/")
+def read_root():
+    return {"message": "API de suppression de fond d'image. Utilisez /remove-background/ pour traiter une image."}
 
-@app.post("/remove-bg/")
-async def remove_bg(file: UploadFile = File(...)):
-    try:
-        print("[INFO] Début du traitement")
-        image_bytes = await file.read()
-
-        if not image_bytes:
-            raise HTTPException(status_code=400, detail="Fichier vide")
-
-        print(f"[INFO] Taille du fichier reçu : {len(image_bytes)} octets")
-
-        # Sauvegarder temporairement l'image reçue
-        filename = f"/tmp/images/{int(time.time())}.png"
-        with open(filename, "wb") as f:
-            f.write(image_bytes)
-        print(f"[INFO] Image enregistrée temporairement : {filename}")
-
-        # Traitement avec rembg
-        output_bytes = remove(image_bytes, session=session)
-
-        print("[INFO] Suppression de fond réussie.")
-        return StreamingResponse(io.BytesIO(output_bytes), media_type="image/png")
-
-    except Exception as e:
-        print(f"[ERREUR] {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur serveur")
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)
